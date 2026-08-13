@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.git/
+TEMP/
+*.wav
+*.mp3
+output/
+logs_*/
+.superpowers/
+.guangpu_webui/
+AGENTS.md
+docs/superpowers/

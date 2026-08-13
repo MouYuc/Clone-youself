@@ -1,0 +1,16 @@
+services:
+  guangpu-tts:
+    image: ghcr.io/mouyuc/clone-youself:latest
+    container_name: guangpu-tts
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - GPT_SOVITS_ROOT=/workspace/GPT-SoVITS
+    volumes:
+      # 底模（公开）：下载后挂载到 GPT_SoVITS/pretrained_models 与 text/G2PWModel
+      - ./models/pretrained_models:/workspace/GPT-SoVITS/GPT_SoVITS/pretrained_models
+      - ./models/G2PWModel:/workspace/GPT-SoVITS/GPT_SoVITS/text/G2PWModel
+      # 你自己的训练产物（声音模型/数据集），按需挂载
+      - ./my_voice:/workspace/GPT-SoVITS/custom_data
+    working_dir: /workspace/GPT-SoVITS
+    command: ["/bin/bash"]

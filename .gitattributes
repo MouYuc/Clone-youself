@@ -1,0 +1,2 @@
+# 补丁文件必须保持 LF 换行（UTF-8），否则容器内 git apply 会失败
+*.patch text eol=lf

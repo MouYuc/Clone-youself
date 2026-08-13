@@ -1,0 +1,149 @@
+diff --git a/GPT_SoVITS/text/chinese.py b/GPT_SoVITS/text/chinese.py
+index 944c9cb..8ca663d 100644
+--- a/GPT_SoVITS/text/chinese.py
++++ b/GPT_SoVITS/text/chinese.py
+@@ -80,14 +80,39 @@ def g2p(text):
+     return phones, word2ph
+ 
+ 
++# 广普自定义读音：粤字按广东人口音标注（final 带声调数字）
++GP_PINYIN = {
++    "系": ("h", "ei1"),
++    "嘅": ("g", "e3"),
++    "乜": ("m", "e1"),
++    "嘢": ("y", "E5"),
++    "冇": ("m", "ou5"),
++    "咁": ("g", "an3"),
++    "哋": ("d", "ei5"),
++    "喺": ("h", "ai2"),
++    "咗": ("z", "uo3"),
++    "佢": ("q", "v2"),
++    "睇": ("d", "i1"),
++    "咩": ("m", "ie1"),
++    "啲": ("d", "i1"),
++    "嚟": ("l", "ei4"),
++    "㗎": ("g", "a3"),
++}
++
++
+ def _get_initials_finals(word):
+     initials = []
+     finals = []
+-    orig_initials = lazy_pinyin(word, neutral_tone_with_five=True, style=Style.INITIALS)
+-    orig_finals = lazy_pinyin(word, neutral_tone_with_five=True, style=Style.FINALS_TONE3)
+-    for c, v in zip(orig_initials, orig_finals):
+-        initials.append(c)
+-        finals.append(v)
++    for ch in word:
++        if ch in GP_PINYIN:
++            ini, fin = GP_PINYIN[ch]
++            initials.append(ini)
++            finals.append(fin)
++        else:
++            ini = lazy_pinyin(ch, neutral_tone_with_five=True, style=Style.INITIALS)[0]
++            fin = lazy_pinyin(ch, neutral_tone_with_five=True, style=Style.FINALS_TONE3)[0]
++            initials.append(ini)
++            finals.append(fin)
+     return initials, finals
+ 
+ 
+diff --git a/GPT_SoVITS/text/chinese2.py b/GPT_SoVITS/text/chinese2.py
+index acfebfe..f31ad78 100644
+--- a/GPT_SoVITS/text/chinese2.py
++++ b/GPT_SoVITS/text/chinese2.py
+@@ -65,7 +65,7 @@ def replace_punctuation(text):
+ 
+     replaced_text = pattern.sub(lambda x: rep_map[x.group()], text)
+ 
+-    replaced_text = re.sub(r"[^\u4e00-\u9fa5" + "".join(punctuation) + r"]+", "", replaced_text)
++    replaced_text = re.sub(r"[^\u3400-\u4dbf\u4e00-\u9fa5" + "".join(punctuation) + r"]+", "", replaced_text)
+ 
+     return replaced_text
+ 
+@@ -77,16 +77,58 @@ def g2p(text):
+     return phones, word2ph
+ 
+ 
++# 广普自定义读音：粤字按广东人口音标注（final 带声调数字）
++GP_PINYIN = {
++    "系": ("h", "ei1"),
++    "嘅": ("g", "e3"),
++    "乜": ("m", "e1"),
++    "嘢": ("y", "E5"),
++    "冇": ("m", "ou5"),
++    "咁": ("g", "an3"),
++    "哋": ("d", "ei5"),
++    "喺": ("h", "ai2"),
++    "咗": ("z", "uo3"),
++    "佢": ("q", "v2"),
++    "睇": ("d", "i1"),
++    "咩": ("m", "ie1"),
++    "啲": ("d", "i1"),
++    "嚟": ("l", "ei4"),
++    "㗎": ("g", "a3"),
++}
++
++# g2pw 分支用的完整拼音覆盖（粤字强制按广普读音）
++GP_PINYIN_FULL = {
++    "系": "hei1",
++    "嘅": "ge3",
++    "乜": "me1",
++    "嘢": "ye5",
++    "冇": "mou5",
++    "咁": "gan3",
++    "哋": "dei5",
++    "喺": "hai2",
++    "咗": "zuo3",
++    "佢": "qu2",
++    "睇": "di1",
++    "咩": "mie1",
++    "啲": "di1",
++    "嚟": "lei4",
++    "㗎": "ga3",
++}
++
++
+ def _get_initials_finals(word):
+     initials = []
+     finals = []
+-
+-    orig_initials = lazy_pinyin(word, neutral_tone_with_five=True, style=Style.INITIALS)
+-    orig_finals = lazy_pinyin(word, neutral_tone_with_five=True, style=Style.FINALS_TONE3)
+-
+-    for c, v in zip(orig_initials, orig_finals):
+-        initials.append(c)
+-        finals.append(v)
++    for ch in word:
++        if ch in GP_PINYIN:
++            ini, fin = GP_PINYIN[ch]
++            initials.append(ini)
++            finals.append(fin)
++        else:
++            ini = lazy_pinyin(ch, neutral_tone_with_five=True, style=Style.INITIALS)[0]
++            fin = lazy_pinyin(ch, neutral_tone_with_five=True, style=Style.FINALS_TONE3)[0]
++            initials.append(ini)
++            finals.append(fin)
+     return initials, finals
+ 
+ 
+@@ -229,6 +271,11 @@ def _g2p(segments):
+                 # 多音字消歧
+                 word_pinyins = correct_pronunciation(word, word_pinyins)
+ 
++                # 广普词典强制覆盖
++                for _wi, _wch in enumerate(word):
++                    if _wch in GP_PINYIN_FULL:
++                        word_pinyins[_wi] = GP_PINYIN_FULL[_wch]
++
+                 for pinyin in word_pinyins:
+                     if pinyin[0].isalpha():
+                         sub_initials.append(to_initials(pinyin))
+@@ -308,7 +355,7 @@ def replace_punctuation_with_en(text):
+ 
+     replaced_text = pattern.sub(lambda x: rep_map[x.group()], text)
+ 
+-    replaced_text = re.sub(r"[^\u4e00-\u9fa5A-Za-z" + "".join(punctuation) + r"]+", "", replaced_text)
++    replaced_text = re.sub(r"[^\u3400-\u4dbf\u4e00-\u9fa5A-Za-z" + "".join(punctuation) + r"]+", "", replaced_text)
+ 
+     return replaced_text
+ 
