@@ -27,7 +27,7 @@ git apply ../guangpu-tts/patches/guangpu_pinyin.patch
 或直接复制 `GP_PINYIN` / `GP_PINYIN_FULL` 字典到对应位置。
 
 > 注意：补丁只影响文本前端。改完补丁后，**需要重新执行 1-get-text.py
-> 并重训模型**，读音才会生效（详见 README 训练流程）。
+> 并重训模型**，读音才会生效（详见 docs/TRAINING_GUIDE.md）。
 
 ## 词典内容（v1.0）
 
